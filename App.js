@@ -14,6 +14,8 @@ import {
   DateTimePicker,
   TextField,
   TextArea,
+  SegmentedControl,
+  BorderRadiuses,
 } from "react-native-ui-lib";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -31,6 +33,16 @@ const formSchema = yup.object().shape({
     .required("Title is required"),
   description: yup
     .string()
+    .min(2, "Description must be 2 character(s) long")
+    .required("Description is required"),
+});
+
+const formSchema2 = yup.object().shape({
+  atLeastOneDaySelected: yup
+    .boolean()
+    .required("Must pick at least one day"),
+  timeSelected: yup
+    .time()
     .min(2, "Description must be 2 character(s) long")
     .required("Description is required"),
 });
@@ -286,13 +298,176 @@ function AddHabitOneScreen({ navigation }) {
     console.log("handled weekly");
   }
 
+  const longOptions = [
+    { label: "Arabic", value: "Arabic" },
+    { label: "Spanish", value: "Spanish" },
+    { label: "English", value: "English" },
+    { label: "Italian", value: "Italian" },
+  ];
+
+  const [addHabitPageNum, setAddHabitPageNum] = useState(0);
+
+  const animationProps = useSpring({
+    to: { opacity: 1, marginTop: 0 },
+    from: { opacity: 0, marginTop: -50 },
+    delay: 400,
+  });
+  const animationPropsTwo = useSpring({
+    to: { opacity: 1, marginTop: 0 },
+    from: { opacity: 0, marginTop: -50 },
+    delay: 800,
+  });
+  const animationPropsThree = useSpring({
+    to: { opacity: 1, marginTop: 0 },
+    from: { opacity: 0, marginTop: -50 },
+    delay: 1200,
+  });
+  const animationPropsFour = useSpring({
+    to: { opacity: addHabitPageNum == 0 ? 1 : 0, marginTop: 0 },
+    from: { opacity: 1, marginTop: -50 },
+    delay: 800,
+  });
+
+  return (
+    <View
+      style={{
+        alignItems: "center",
+        ...styles.container,
+      }}
+    >
+      <View
+        style={{
+          alignItems: "center",
+          ...styles.container,
+        }}
+      >
+        <AnimatedView
+          style={{
+            ...animationPropsFour,
+            ...styles.container,
+            padding: 40,
+            flex: 5,
+            alignItems: "flex-end",
+          }}
+        >
+          <View
+            style={{
+              marginBottom: 20,
+            }}
+          >
+            <AnimatedView
+              style={{
+                ...animationProps,
+                alignItems: "flex-start",
+              }}
+            >
+              <Text text40 styles={{}}>
+                Let's solidify a habit.
+              </Text>
+            </AnimatedView>
+            <View padding-10></View>
+            <AnimatedView
+              style={{
+                ...animationPropsTwo,
+                alignItems: "flex-start",
+              }}
+            >
+              <Text text40 styles={{}}>
+                Help us out by giving us some details.
+              </Text>
+            </AnimatedView>
+          </View>
+
+          <AnimatedView style={{...animationPropsThree}}>
+          <Formik
+            initialValues={{ title: "", description: "" }}
+            onSubmit={(values) => {
+              navigation.navigate("AddHabitTwo");
+            }}
+            // Alert.alert(JSON.stringify())
+            validationSchema={formSchema}
+          >
+            {({ handleChange, handleBlur, values, handleSubmit, errors }) => (
+              <View>
+                <TextField
+                  text40
+                  style={{
+                    paddingBottom: 1,
+                    marginBottom: 1,
+                    flex: 0,
+                    alignSelf: "flex-start",
+                  }}
+                  placeholder="Name of Habit"
+                  value={values.title}
+                  onChangeText={handleChange("title")}
+                  onBlur={handleBlur("title")}
+                />
+                <View
+                  style={{
+                    height: 150,
+                    borderWidth: 1,
+                    marginBottom: 0,
+                    padding: 10,
+                    borderColor: Colors.dark60,
+                  }}
+                >
+                  <TextArea
+                    text70
+                    style={{
+                      ...styles.input,
+                      paddingTop: 0,
+                      alignSelf: "flex-end",
+                    }}
+                    placeholder="Description. e.g. I want to do at least 30 minutes of yoga in order to..."
+                    value={values.description}
+                    onChangeText={handleChange("description")}
+                    onBlur={handleBlur("description")}
+                  />
+                </View>
+                <ErrorMessage name="title">
+                  {(msg) => (
+                    <Text style={{ color: "red", paddingTop: 10 }}>{msg}</Text>
+                  )}
+                </ErrorMessage>
+                <ErrorMessage name="description">
+                  {(msg) => (
+                    <Text style={{ color: "red", paddingBottom: 5 }}>
+                      {msg}
+                    </Text>
+                  )}
+                </ErrorMessage>
+                <Button
+                  backgroundColor="#30B650"
+                  label="CONTINUE"
+                  labelStyle={{ fontWeight: "900" }}
+                  style={{ marginBottom: 20, marginTop: 20 }}
+                  onPress={handleSubmit}
+                  color="white"
+                  title="Continue"
+                />
+              </View>
+            )}
+          </Formik>
+          </AnimatedView>
+        </AnimatedView>
+      </View>
+    </View>
+  );
+}
+
+function AddHabitTwoScreen({ navigation }) {
+  const [toggledDays, setToggledDays] = useState({
+    Su: false,
+    M: false,
+    Tu: false,
+    W: false,
+    Th: false,
+    F: false,
+    Sa: false,
+  });
+
   function handleToggleDay(name) {
     let items = { ...toggledDays };
-    let itemColors = { ...daysColor };
-
-    itemColors[name] =
-      itemColors[name] == Colors.white ? Colors.green20 : Colors.white;
-    setDaysColor(itemColors);
 
     if (items[name]) {
       items[name] = false;
@@ -303,27 +478,25 @@ function AddHabitOneScreen({ navigation }) {
     }
   }
 
-  const longOptions = [
-    { label: "Arabic", value: "Arabic" },
-    { label: "Spanish", value: "Spanish" },
-    { label: "English", value: "English" },
-    { label: "Italian", value: "Italian" },
-  ];
-
   function WeekdayChip(props) {
     return (
       <View>
         <Chip
           label={props.name}
           labelStyle={{
-            color: Colors.black,
+            color: toggledDays[props.name] ? Colors.white : Colors.black,
             fontSize: 16,
             paddingVertical: 3,
             paddingHorizontal: 0,
           }}
           containerStyle={{
-            backgroundColor: props.backgroundColor,
+            backgroundColor: toggledDays[props.name]
+              ? Colors.green20
+              : Colors.white,
             marginLeft: Spacings.s1,
+            borderColor: toggledDays[props.name]
+              ? Colors.green20
+              : Colors.black,
           }}
           onPress={() => {
             console.log(props.name);
@@ -337,293 +510,155 @@ function AddHabitOneScreen({ navigation }) {
 
   const [addHabitPageNum, setAddHabitPageNum] = useState(0);
 
-  const animationProps = useSpring({ to: { opacity: 1, marginTop: 0}, from: { opacity: 0, marginTop: -50 }, delay: 500 })
-  const animationPropsTwo = useSpring({ to: { opacity: 1, marginTop: 0}, from: { opacity: 0, marginTop: -50 }, delay: 2000 })
-  const animationPropsThree = useSpring({ to: { opacity: (addHabitPageNum == 0) ? 1 : 0, marginTop: 0}, from: { opacity: 1, marginTop: -50 }, delay: 1000 })
+  const animationPropsA = useSpring({
+    to: { opacity: 1, marginTop: 0 },
+    from: { opacity: 0, marginTop: -50 },
+    delay: 400,
+  });
+  const animationPropsB = useSpring({
+    to: { opacity: 1, marginTop: 0 },
+    from: { opacity: 0, marginTop: -50 },
+    delay: 800,
+  });
+  const animationPropsC = useSpring({
+    to: { opacity: 1, marginTop: 0 },
+    from: { opacity: 0, marginTop: -50 },
+    delay: 1200,
+  });
 
+  const animationPropsD = useSpring({
+    to: {
+      opacity: 1,
+      marginTop: 0,
+      paddingTop: 5,
+      paddingBottom: 20,
 
-  const animationPropsFour = useSpring({ to: { opacity: (addHabitPageNum == 1) ? 1 : 0, marginTop: 0}, from: { opacity: 0, marginTop: -50 }, delay: 1000 })
+    },
+    from: { opacity: 0, marginTop: -50, paddingTop: 0 },
+    delay: 1600,
+  });
 
   return (
-    <View style={{
-      alignItems: "center",
-      ...styles.container,
-    }}>
-
-           <View style={{
-      alignItems: "center",
-      ...styles.container,
-    }}>
-          <AnimatedView
+    <View
+      style={{
+        alignItems: "center",
+        ...styles.container,
+      }}
+    >
+      <View
+        style={{
+          alignItems: "center",
+          ...styles.container,
+        }}
+      >
+        <AnimatedView
+          style={{
+            ...styles.container,
+            padding: 40,
+            flex: 5,
+            alignItems: "flex-end",
+          }}
+        >
+          <View
             style={{
-              ...animationPropsThree,
-              ...styles.container,
-              padding: 40,
-              flex: 5,
-              alignItems: "flex-end",
+              marginBottom: 20,
             }}
           >
-            <View style={{
-              marginBottom: 20,
-            }}>
-            <AnimatedView style={{...animationProps, padding: 0,alignItems: 'flex-start'}}>
-                  <Text text40 styles={{}}>Let's solidify a habit.</Text>
-              </AnimatedView>
-              <View padding-10  ></View>
-              <AnimatedView style={{...animationPropsTwo, padding: 0,alignItems: 'flex-start'}}>
-                  <Text text40 styles={{}}>Help us out by giving us some details.</Text>
-              </AnimatedView>
-            </View>
-
-            <Formik
-      initialValues={{ title: "", description: "" }}
-      onSubmit={(values) => setAddHabitPageNum(1)}
-      // Alert.alert(JSON.stringify())
-      validationSchema={formSchema}
-    >
-      {({ handleChange, handleBlur, values, handleSubmit, errors }) => (
-        <View>
-            <TextField
-              text40
+            <AnimatedView
               style={{
-                paddingBottom: 1,
-                marginBottom: 1,
-                flex: 0,
-                alignSelf: "flex-start",
-              }}
-              placeholder="Name of Habit"
-              value={values.title}
-              onChangeText={handleChange("title")}
-              onBlur={handleBlur("title")}
-            />
-            <View
-              style={{
-                height: 150,
-                borderWidth: 1,
-                marginBottom: 0,
-                padding: 10,
-                borderColor: Colors.dark60,
+                ...animationPropsA,
+                padding: 0,
+                alignItems: "flex-start",
               }}
             >
-              <TextArea
-                text70
-                style={{
-                  ...styles.input,
-                  paddingTop: 0,
-                  alignSelf: "flex-end",
-                }}
-                placeholder="Description. e.g. I want to do at least 30 minutes of yoga in order to..."
-                value={values.description}
-                onChangeText={handleChange("description")}
-                onBlur={handleBlur("description")}
-              />
-            </View>
-            <ErrorMessage name="title">
-              {(msg) => (
-                <Text style={{ color: "red", paddingTop: 10 }}>{msg}</Text>
-              )}
-            </ErrorMessage>
-            <ErrorMessage name="description">
-              {(msg) => (
-                <Text style={{ color: "red", paddingBottom: 5 }}>{msg}</Text>
-              )}
-            </ErrorMessage>
-            <Button
-              backgroundColor="#30B650"
-              label="CONTINUE"
-              labelStyle={{ fontWeight: "900" }}
-              style={{ marginBottom: 20, marginTop: 20 }}
-              onPress={handleSubmit}
-              color="white"
-              title="Continue"
-            />
-            </View>
-            )}
-            </Formik>
-          </AnimatedView>
+              <Text text40 styles={{}}>
+                Thanks for that info.
+              </Text>
+            </AnimatedView>
+            <AnimatedView
+              style={{
+                ...animationPropsB,
+                paddingTop: 15,
+                alignItems: "flex-start",
+              }}
+            >
+              <Text text40 styles={{}}>
+              Remember, the more you do it, the more engrained the habit becomes.
+              </Text>
+            </AnimatedView>
+            <AnimatedView
+              style={{
+                ...animationPropsC,
+                paddingTop: 15,
+                alignItems: "flex-start",
+              }}
+            >
+              <Text text40>
+                Which days of the week would you like to be reminded? And what time?
+              </Text>
+            </AnimatedView>
           </View>
-        
-        </View>
-  );
-}
 
+            <AnimatedView                     style={{ ...animationPropsD }}>
+          <Formik
+            initialValues={{ title: "", description: "" }}
+            onSubmit={(values) => {
+              navigation.navigate("Home")
+            }}
+            // Alert.alert(JSON.stringify())
+            validationSchema={formSchema}
+          >
+            {({ handleChange, handleBlur, values, handleSubmit, errors }) => (
+              <View>
+                <View
+                  label="itemsToSelect"
+                  style={{
+                    justifyContent: "center",
+                  }}
+                >
+                  
+                  <View
+                    label="WeekdayChips"
+                    row
+                    style={{marginBottom:25}}
+                  >
+                    <WeekdayChip name={"Su"} />
+                    <WeekdayChip name={"M"} />
+                    <WeekdayChip name={"Tu"} />
+                    <WeekdayChip name={"W"} />
+                    <WeekdayChip name={"Th"} />
+                    <WeekdayChip name={"F"} />
+                    <WeekdayChip name={"Sa"} />
+                  </View>
+                  <View label="DateTimeView" style={{marginHorizontal: 10, marginHorizontal: 50}}>
+                    <DateTimePicker
+                      mode={"time"}
+                      title={"Time"}
+                      placeholder={"Select time"}
+                      timeFormat={"h:mm A"}
+                      style={{ padding: 10 }}
+                    />
+                  </View>
+                </View>
 
-
-
-
-
-function AddHabitTwoScreen({ navigation }) {
-  const [reminderFrequency, setReminderFrequency] = useState("Daily");
-  const [reminderTime, setReminderTime] = useState([]);
-  const [dailyColor, setDailyColor] = useState(Colors.white);
-  const [weeklyColor, setWeeklyColor] = useState(Colors.white);
-  const [toggledDays, setToggledDays] = useState({
-    Su: false,
-    M: false,
-    Tu: false,
-    W: false,
-    Th: false,
-    F: false,
-    Sa: false,
-  });
-  const [daysColor, setDaysColor] = useState({
-    Su: Colors.white,
-    M: Colors.white,
-    Tu: Colors.white,
-    W: Colors.white,
-    Th: Colors.white,
-    F: Colors.white,
-    Sa: Colors.white,
-  });
-
-
-  function WeekdayChip(props) {
-    return (
-      <View>
-        <Chip
-          label={props.name}
-          labelStyle={{
-            color: Colors.black,
-            fontSize: 16,
-            paddingVertical: 3,
-            paddingHorizontal: 0,
-          }}
-          containerStyle={{
-            backgroundColor: props.backgroundColor,
-            marginLeft: Spacings.s1,
-          }}
-          onPress={() => {
-            console.log(props.name);
-            handleToggleDay(props.name);
-          }}
-          size={{ width: 5, height: 40 }}
-        />
+                <Button
+                  backgroundColor="#30B650"
+                  label="DONE"
+                  labelStyle={{ fontWeight: "900" }}
+                  style={{ marginBottom: 20, marginTop: 10 }}
+                  onPress={handleSubmit}
+                  color="white"
+                  title="Done"
+                />
+              </View>
+            )}
+          </Formik>
+          </AnimatedView>
+        </AnimatedView>
       </View>
-    );
-  }
-
-  const [addHabitPageNum, setAddHabitPageNum] = useState(0);
-
-  const animationProps = useSpring({ to: { opacity: 1, marginTop: 0}, from: { opacity: 0, marginTop: -50 }, delay: 500 })
-  const animationPropsTwo = useSpring({ to: { opacity: 1, marginTop: 0}, from: { opacity: 0, marginTop: -50 }, delay: 2000 })
-  const animationPropsThree = useSpring({ to: { opacity: (addHabitPageNum == 0) ? 1 : 0, marginTop: 0}, from: { opacity: 1, marginTop: -50 }, delay: 1000 })
-
-
-  const animationPropsFour = useSpring({ to: { opacity: (addHabitPageNum == 1) ? 1 : 0, marginTop: 0}, from: { opacity: 0, marginTop: -50 }, delay: 1000 })
-
-  return (
-    <View style={{
-      alignItems: "center",
-      ...styles.container,
-    }}>
-
-           <View style={{
-      alignItems: "center",
-      ...styles.container,
-    }}>
-          <AnimatedView
-            style={{
-              ...animationPropsThree,
-              ...styles.container,
-              padding: 40,
-              flex: 5,
-              alignItems: "flex-end",
-            }}
-          >
-            <View style={{
-              marginBottom: 20,
-            }}>
-            <AnimatedView style={{...animationProps, padding: 0,alignItems: 'flex-start'}}>
-                  <Text text40 styles={{}}>Let's solidify a habit.</Text>
-              </AnimatedView>
-              <View padding-10  ></View>
-              <AnimatedView style={{...animationPropsTwo, padding: 0,alignItems: 'flex-start'}}>
-                  <Text text40 styles={{}}>Help us out by giving us some details.</Text>
-              </AnimatedView>
-            </View>
-
-            <Formik
-      initialValues={{ title: "", description: "" }}
-      onSubmit={(values) => setAddHabitPageNum(1)}
-      // Alert.alert(JSON.stringify())
-      validationSchema={formSchema}
-    >
-      {({ handleChange, handleBlur, values, handleSubmit, errors }) => (
-        <View>
-            <TextField
-              text40
-              style={{
-                paddingBottom: 1,
-                marginBottom: 1,
-                flex: 0,
-                alignSelf: "flex-start",
-              }}
-              placeholder="Name of Habit"
-              value={values.title}
-              onChangeText={handleChange("title")}
-              onBlur={handleBlur("title")}
-            />
-            <View
-              style={{
-                height: 150,
-                borderWidth: 1,
-                marginBottom: 0,
-                padding: 10,
-                borderColor: Colors.dark60,
-              }}
-            >
-              <TextArea
-                text70
-                style={{
-                  ...styles.input,
-                  paddingTop: 0,
-                  alignSelf: "flex-end",
-                }}
-                placeholder="Description. e.g. I want to do at least 30 minutes of yoga in order to..."
-                value={values.description}
-                onChangeText={handleChange("description")}
-                onBlur={handleBlur("description")}
-              />
-            </View>
-            <ErrorMessage name="title">
-              {(msg) => (
-                <Text style={{ color: "red", paddingTop: 10 }}>{msg}</Text>
-              )}
-            </ErrorMessage>
-            <ErrorMessage name="description">
-              {(msg) => (
-                <Text style={{ color: "red", paddingBottom: 5 }}>{msg}</Text>
-              )}
-            </ErrorMessage>
-            <Button
-              backgroundColor="#30B650"
-              label="CONTINUE"
-              labelStyle={{ fontWeight: "900" }}
-              style={{ marginBottom: 20, marginTop: 20 }}
-              onPress={handleSubmit}
-              color="white"
-              title="Continue"
-            />
-            </View>
-            )}
-            </Formik>
-          </AnimatedView>
-          </View>
-        
-        </View>
+    </View>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
 
 const Stack = createNativeStackNavigator();
 
@@ -649,7 +684,7 @@ export default function App() {
           component={AddHabitOneScreen}
           options={{ headerShown: false }}
         />
-                <Stack.Screen
+        <Stack.Screen
           name="AddHabitTwo"
           component={AddHabitTwoScreen}
           options={{ headerShown: false }}
@@ -723,55 +758,6 @@ ThemeManager.setComponentTheme("Button", (props, context) => {
     height: 80,
   };
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // const renderAddHabitCard = (cardNum) => {
 //   switch (cardNum) {
@@ -892,3 +878,87 @@ ThemeManager.setComponentTheme("Button", (props, context) => {
 //   //   this.carousel.current.goToPage(index, true);
 //   // }
 // };
+
+{
+  /* <SegmentedControl
+            containerStyle={{padding: 10}}
+            segments={[{label: 'Left'}, {label: 'Right'}]}
+            activeColor={Colors.white}
+            // borderRadius={BorderRadiuses.br100}
+            backgroundColor={Colors.grey50}
+            activeBackgroundColor={Colors.green20}
+            inactiveColor={Colors.grey10}
+            outlineWidth={0}
+            outlineColor={Colors.white}
+            style={{fontSize: 18, fontWeight: 600}}
+          /> */
+}
+
+
+// <View
+//                     label="DailyOrWeeklyChips"
+//                     row
+//                     style={{
+//                       flex: 0,
+//                       flexDirection: "row",
+//                       alignItems: "space-around",
+//                       paddingHorizontal: 10,
+//                       paddingTop: 10,
+//                       justifyContent: "center",
+//                     }}
+//                   >
+//                     <Chip
+//                       label={"Daily"}
+//                       labelStyle={{
+//                         color:
+//                           reminderFrequency == "Daily"
+//                             ? Colors.white
+//                             : Colors.black,
+//                         fontSize: 22,
+//                         paddingTop: 15,
+//                         paddingBottom: 5,
+//                         paddingHorizontal: 10,
+//                       }}
+//                       containerStyle={{
+//                         borderColor:
+//                           reminderFrequency == "Daily"
+//                             ? Colors.green20
+//                             : Colors.black,
+//                         backgroundColor:
+//                           reminderFrequency == "Daily"
+//                             ? Colors.green20
+//                             : Colors.white,
+//                         marginHorizontal: 10,
+//                       }}
+//                       onPress={() => {
+//                         setReminderFrequency("Daily");
+//                       }}
+//                     />
+//                     <Chip
+//                       label={"Weekly"}
+//                       labelStyle={{
+//                         color:
+//                           reminderFrequency == "Weekly"
+//                             ? Colors.white
+//                             : Colors.black,
+//                         fontSize: 22,
+//                         paddingTop: 15,
+//                         paddingBottom: 5,
+//                         paddingHorizontal: 10,
+//                       }}
+//                       containerStyle={{
+//                         borderColor:
+//                           reminderFrequency == "Weekly"
+//                             ? Colors.green20
+//                             : Colors.black,
+//                         backgroundColor:
+//                           reminderFrequency == "Weekly"
+//                             ? Colors.green20
+//                             : Colors.white,
+//                         marginHorizontal: 5,
+//                       }}
+//                       onPress={() => {
+//                         setReminderFrequency("Weekly");
+//                       }}
+//                     />
+//                   </View>
