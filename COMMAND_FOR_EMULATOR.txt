@@ -1,0 +1,4 @@
+
+cd %appdata%\..\local\Android\Sdk\emulator
+emulator -list-avds
+emulator @Pixel_4a_API_30
