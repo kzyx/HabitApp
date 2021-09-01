@@ -21,9 +21,9 @@ Adding habit screen        |  Navigating habit list
 (some work still to be done here to complete some features)
 ---
 ## Libraries/Tools used
-- Expo
-- React Native UI Library for many of the UI components
-- react-spring for animations
-- Formik for forms, and Yup for form validation 
-- React Native Async Storage for saving habits and other data
+- [Expo](https://expo.dev/)
+- [React Native UI Library](https://wix.github.io/react-native-ui-lib/) for many of the UI components
+- [react-spring](https://react-spring.io/) for animations
+- [Formik](https://formik.org/) for forms, and [Yup](https://github.com/jquense/yup) for form validation 
+- [React Native Async Storage](https://react-native-async-storage.github.io/async-storage/) for saving habits and other data
 ---
