@@ -1,14 +1,12 @@
 # HabitHound
 #### A habit-building app written in React Native
 ###### *Work on this project began on Aug 23, 2021*
-###### *Page last updated Aug 25, 2021*
+###### *Page last updated Sept 1, 2021*
 ---
 ## Demo
-
-<p float="left">
-  <img src="http://g.recordit.co/8OQMVvc6T5.gif" width="300" />
-  <img src="http://g.recordit.co/A3jacBz8kG.gif" width="300" /> 
-</p>
+Adding habit screen        |  Navigating habit list
+:-------------------------:|:-------------------------:
+![](http://g.recordit.co/8OQMVvc6T5.gif){width="200px"}   |   ![](http://g.recordit.co/A3jacBz8kG.gif){width="200px"}
 ---
 ## Current TODOs
 - Habit list page
