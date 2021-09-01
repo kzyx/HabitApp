@@ -10,11 +10,12 @@ import {
   View
 } from "react-native-ui-lib";
 import { ErrorMessage, Formik } from "formik";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { animated, useSpring } from "react-spring";
 
 import { SelectableChipRow } from "./SelectableChip";
 import { StyleSheet } from "react-native";
+import { useHabitsListContext } from "./HabitsList";
 
 export const AnimatedView = animated(View);
 
@@ -30,12 +31,14 @@ export const habitSchemaOne = yup.object().shape({
 });
 
 export const habitSchemaTwo = yup.object().shape({
-  // atLeastOneDaySelected: yup
-  //   .boolean()
-  //   .required("Must pick at least one day"),
-  // timeOfDay: yup
-  //   .date()
-  //   .required("Time of day is required"),
+  atLeastOneDaySelected: yup
+    .boolean()
+    .oneOf([true], "Must pick at least one day")
+    .required("Must pick at least one day"),
+  isTimeOfDaySpecified: yup
+    .boolean()
+    .oneOf([true, 1], "Time of day is required")
+    .required("Time of day is required"),
 });
 
 const Page = ({ children, style, ...others }) => {
@@ -46,33 +49,9 @@ const Page = ({ children, style, ...others }) => {
   );
 };
 
-
 export function AddHabitOneScreen({ navigation }) {
-  const [language, setLanguage] = useState("English");
-  const [reminderFrequency, setReminderFrequency] = useState("Daily");
-  const [reminderTime, setReminderTime] = useState([]);
-  const [dailyColor, setDailyColor] = useState(Colors.white);
-  const [weeklyColor, setWeeklyColor] = useState(Colors.white);
-  const [toggledDays, setToggledDays] = useState({
-    Su: false,
-    M: false,
-    Tu: false,
-    W: false,
-    Th: false,
-    F: false,
-    Sa: false,
-  });
-  const [daysColor, setDaysColor] = useState({
-    Su: Colors.white,
-    M: Colors.white,
-    Tu: Colors.white,
-    W: Colors.white,
-    Th: Colors.white,
-    F: Colors.white,
-    Sa: Colors.white,
-  });
 
-  const [addHabitPageNum, setAddHabitPageNum] = useState(0);
+  const [readyToExitScreen, setReadyToExitScreen] = useState(false);
 
   const animationProps = useSpring({
     to: { opacity: 1, marginTop: 0 },
@@ -90,8 +69,8 @@ export function AddHabitOneScreen({ navigation }) {
     delay: 1200,
   });
   const animationPropsFour = useSpring({
-    to: { opacity: addHabitPageNum == 0 ? 1 : 0, marginTop: 0 },
-    from: { opacity: 1, marginTop: -50 },
+    to: { opacity: readyToExitScreen ? 0 : 1, marginTop: readyToExitScreen ? -50 : 0 },
+    from: { opacity: 1, marginTop: 0 },
     delay: 800,
   });
 
@@ -139,7 +118,7 @@ export function AddHabitOneScreen({ navigation }) {
                 alignItems: "flex-start",
               }}
             >
-              <Text text30 styles={{}}>
+              <Text text30>
                 Help us out by providing details.
               </Text>
             </AnimatedView>
@@ -149,7 +128,7 @@ export function AddHabitOneScreen({ navigation }) {
             <Formik
               initialValues={{ title: "", description: "" }}
               onSubmit={(values) => {
-                navigation.navigate("AddHabitTwo");
+                navigation.navigate("AddHabitTwo", {title: values.title, description: values.description});
               }}
               // Alert.alert(JSON.stringify())
               validationSchema={habitSchemaOne}
@@ -221,7 +200,8 @@ export function AddHabitOneScreen({ navigation }) {
   );
 }
 
-export function AddHabitTwoScreen({ navigation }) {
+export function AddHabitTwoScreen({ route, navigation }) {
+  const {title, description} = route.params
   const [toggledDays, setToggledDays] = useState({
     Su: false,
     M: false,
@@ -232,7 +212,9 @@ export function AddHabitTwoScreen({ navigation }) {
     Sa: false,
   });
 
-  function handleToggleDay(name) {
+  const [timeOfDay, setTimeOfDay] = useState(null)
+
+  function handleToggleDay(name, formikValues) {
     let items = { ...toggledDays };
 
     if (items[name]) {
@@ -242,9 +224,21 @@ export function AddHabitTwoScreen({ navigation }) {
       items[name] = true;
       setToggledDays(items);
     }
+
+    var temp = false;
+    for (key in items) {
+      if (!items.hasOwnProperty(key)) {
+        continue;
+    }
+      temp |= items[key];
+    }
+    console.log("temp is ", temp, "\n")
+    formikValues.atLeastOneDaySelected = temp;
+    
   }
 
-  const [addHabitPageNum, setAddHabitPageNum] = useState(0);
+  const [readyToExitScreen, setReadyToExitScreen] = useState(false);
+  var { habitsList, addHabitToList, removeHabitFromList } = useHabitsListContext();
 
   const animationPropsA = useSpring({
     to: { opacity: 1, marginTop: 0 },
@@ -337,9 +331,22 @@ export function AddHabitTwoScreen({ navigation }) {
 
         <AnimatedView style={{ ...animationPropsD, paddingHorizontal: 100 }}>
           <Formik
-            initialValues={{ title: "", description: "" }}
+            initialValues={{
+              atLeastOneDaySelected: false,
+              isTimeOfDaySpecified: false,
+            }}
             onSubmit={(values) => {
-              navigation.navigate("Home");
+              console.log(title, description, toggledDays, timeOfDay)
+              addHabitToList({
+                title: title,
+                description: description,
+                toggledDays: toggledDays,
+                timeOfDay: timeOfDay,
+                lastSevenTimesDone: Array.from({length: 0}),
+              });
+              console.log(" ")
+              console.log(habitsList)
+              navigation.navigate("HabitsList");
             }}
             // Alert.alert(JSON.stringify())
             validationSchema={habitSchemaTwo}
@@ -354,10 +361,13 @@ export function AddHabitTwoScreen({ navigation }) {
                 >
                   <SelectableChipRow
                     toggledDays={toggledDays}
+                    completedDays={toggledDays}
                     handleToggleDay={handleToggleDay}
                     fontSize={16}
                     size={{ width: 5, height: 40 }}
-                    chipMarginHorizontal={10} />
+                    chipMarginHorizontal={10}
+                    formikValues={values}
+                  />
                   <View
                     label="DateTimeView"
                     style={{ marginHorizontal: 10, marginHorizontal: 50 }}
@@ -368,7 +378,12 @@ export function AddHabitTwoScreen({ navigation }) {
                       placeholder={"Select time"}
                       timeFormat={"h:mm A"}
                       style={{ padding: 10 }}
-                      value={values.timeOfDay} />
+                      value={timeOfDay}
+                      onChange={(date) => {
+                        setTimeOfDay(date);
+                        values.isTimeOfDaySpecified = true;
+                      }}
+                    />
                   </View>
                 </View>
                 <ErrorMessage name="atLeastOneDaySelected">
@@ -376,7 +391,7 @@ export function AddHabitTwoScreen({ navigation }) {
                     <Text style={{ color: "red", paddingTop: 10 }}>{msg}</Text>
                   )}
                 </ErrorMessage>
-                <ErrorMessage name="timeOfDay">
+                <ErrorMessage name="isTimeOfDaySpecified">
                   {(msg) => (
                     <Text style={{ color: "red", paddingBottom: 5 }}>
                       {msg}
@@ -390,7 +405,8 @@ export function AddHabitTwoScreen({ navigation }) {
                   style={{ marginBottom: 20, marginTop: 10 }}
                   onPress={handleSubmit}
                   color="white"
-                  title="Done" />
+                  title="Done"
+                />
               </View>
             )}
           </Formik>

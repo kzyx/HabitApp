@@ -28,7 +28,8 @@
     "react-native-ui-lib": "^5.29.0",
     "react-native-web": "~0.13.12",
     "react-spring": "^9.2.4",
-    "yup": "^0.32.9"
+    "yup": "^0.32.9",
+    "@react-native-async-storage/async-storage": "~1.15.0"
   },
   "devDependencies": {
     "@babel/core": "^7.9.0"

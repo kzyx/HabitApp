@@ -9,17 +9,18 @@ export function SelectableChipItem(props) {
     if (props.toggledDays[props.name] && props.completedDays[props.name]) {
         backgroundColor = Colors.green20;
         borderColor = Colors.green20;
-        borderWidth = 2;
         textColor = Colors.white;
     } else if (props.toggledDays[props.name]) {
         backgroundColor = Colors.white;
         borderColor = Colors.green20;
-        borderWidth = 2;
         textColor = Colors.green20;
+    } else if (props.completedDays[props.name]) {
+        backgroundColor = "#debb00";
+        borderColor = "#debb00";
+        textColor = Colors.white;
     } else {
         backgroundColor = Colors.white;
         borderColor = Colors.black;
-        borderWidth = 2;
         textColor = Colors.black;
     }
 
@@ -38,11 +39,11 @@ export function SelectableChipItem(props) {
           backgroundColor: backgroundColor,
           marginLeft: Spacings.s1,
           borderColor: borderColor,
-          borderWidth: borderWidth,
+          borderWidth: 2,
         }}
         onPress={() => {
           console.log(props.name);
-          props.handleToggleDay(props.name);
+          props.handleToggleDay(props.name, props.formikValues);
         }}
         size={props.size}
       />
