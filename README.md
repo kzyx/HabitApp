@@ -4,8 +4,11 @@
 ###### *Page last updated Aug 25, 2021*
 ---
 ## Demo
-<img src="http://g.recordit.co/8OQMVvc6T5.gif" width="300">
 
+<p float="left">
+  <img src="http://g.recordit.co/8OQMVvc6T5.gif" width="300" />
+  <img src="http://g.recordit.co/A3jacBz8kG.gif" width="300" /> 
+</p>
 ---
 ## Current TODOs
 - Habit list page
