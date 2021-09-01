@@ -6,7 +6,7 @@
 ## Demo
 Adding habit screen        |  Navigating habit list
 :-------------------------:|:-------------------------:
-![](http://g.recordit.co/8OQMVvc6T5.gif){width="200px"}   |   ![](http://g.recordit.co/A3jacBz8kG.gif){width="200px"}
+![](http://g.recordit.co/8OQMVvc6T5.gif)    |   ![](http://g.recordit.co/A3jacBz8kG.gif)
 ---
 ## Current TODOs
 - Fix push notifications
