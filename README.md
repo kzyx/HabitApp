@@ -9,15 +9,14 @@ Adding habit screen        |  Navigating habit list
 ![](http://g.recordit.co/8OQMVvc6T5.gif){width="200px"}   |   ![](http://g.recordit.co/A3jacBz8kG.gif){width="200px"}
 ---
 ## Current TODOs
-- Habit list page
-- Code cleanup (currently all in one JS file)
+- Fix push notifications
 ---
 ## Installation
 - Downloadable release not yet completed
 ---
 ## Features
 - Sleek, material UI design
-- Ability to add, modify, and remove habits 
+- Ability to add and remove habits 
 - Ability to see progress on habits
 (some work still to be done here to complete some features)
 ---
@@ -25,5 +24,6 @@ Adding habit screen        |  Navigating habit list
 - Expo
 - React Native UI Library for many of the UI components
 - react-spring for animations
-- Formik and Yup for forms
+- Formik for forms, and Yup for form validation 
+- React Native Async Storage for saving habits and other data
 ---
