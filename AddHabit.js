@@ -16,6 +16,7 @@ import { animated, useSpring } from "react-spring";
 import { SelectableChipRow } from "./SelectableChip";
 import { StyleSheet } from "react-native";
 import { useHabitsListContext } from "./HabitsList";
+import { getEmptyWeekDict } from "./Utils";
 
 export const AnimatedView = animated(View);
 
@@ -341,8 +342,10 @@ export function AddHabitTwoScreen({ route, navigation }) {
                 title: title,
                 description: description,
                 toggledDays: toggledDays,
+                completedDays: getEmptyWeekDict(),
                 timeOfDay: timeOfDay,
-                lastSevenTimesDone: Array.from({length: 0}),
+                lastTenTimesDone: Array.from({length: 0}),
+                totalTimesDone: 0,
               });
               console.log(" ")
               console.log(habitsList)

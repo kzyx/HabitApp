@@ -8,7 +8,7 @@ import {
   Text,
   View,
 } from "react-native-ui-lib";
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { dateToWeekdayName, getEmptyWeekDict, getLastSunday, sampleDataTable } from "./Utils";
 import {
   differenceInDays,
@@ -17,6 +17,7 @@ import {
   parseISO,
   startOfDay,
   format,
+  parse,
 } from "date-fns";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -95,14 +96,13 @@ export function HabitsListScreen({ navigation }) {
     removeHabitFromList,
     updateHabitAtIndex,
   } = useHabitsListContext();
-  const [tappedListItem, setTappedListItem] = useState(-1);
 
   // Runs once when the screen loads
   // Loop over every habit, determine how many days completed
   for (var index = 0; index < habitsList.length; index++) {
     var { timesDoneThisWeek, completedDays } = habitsList[index];
-    for (var j = 0; j < habitsList[index].lastSevenTimesDone.length; j++) {
-      var habitDay = habitsList[index].lastSevenTimesDone[j];
+    for (var j = 0; j < habitsList[index].lastTenTimesDone.length; j++) {
+      var habitDay = habitsList[index].lastTenTimesDone[j];
       const habitDate = startOfDay(parseISO(habitDay));
       const sunday = getLastSunday();
   
@@ -123,35 +123,41 @@ export function HabitsListScreen({ navigation }) {
       countToggledDays += row.toggledDays[day] ? 1 : 0;
     }
 
-    handleMarkButtonPress = () => {
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [rowTimesDoneThisWeek, setRowTimesDoneThisWeek] = useState(row.timesDoneThisWeek);
+    const [rowTotalTimesDone, setRowTotalTimesDone] = useState(row.totalTimesDone);
+
+
+    function handleMarkButtonPress(id) {
       const currentDate = new Date();
       const day = dateToWeekdayName(currentDate);
-      var {lastSevenTimesDone, allTimesDone, completedDays, timesDoneThisWeek} = habitsList[id]
+      var {lastTenTimesDone, totalTimesDone, completedDays, timesDoneThisWeek} = habitsList[id]
       if (!completedDays[day]) {
         // Remove oldest/first element in array if it contains >= 7 dates
-        if (lastSevenTimesDone.length >= 7) {
-          lastSevenTimesDone.shift();
+        if (lastTenTimesDone.length >= 7) {
+          lastTenTimesDone.shift();
         }
-
+  
         // Add current date to both arrays
-        lastSevenTimesDone.push(currentDate);
-        allTimesDone.push(currentDate);
-
+        lastTenTimesDone.push(currentDate);
+  
         // Update completedDays, timesDoneThisWeek and re-render FlatList
         completedDays[day] = true;
         timesDoneThisWeek += 1;
-
+        totalTimesDone += 1;
       } else {
         // Remove last item from both arrays
-        lastSevenTimesDone.splice(-1);
-        allTimesDone.splice(-1);
-
+        lastTenTimesDone.splice(-1);
+  
         // Update completedDays, timesDoneThisWeek and re-render FlatList
         completedDays[day] = false;
         timesDoneThisWeek -= 1;
+        totalTimesDone -= 1;
       }
-      updateHabitAtIndex(id, {...habitsList[id], lastSevenTimesDone, allTimesDone, completedDays, timesDoneThisWeek})
-      setRenderAgain(!renderAgain)
+      updateHabitAtIndex(id, {...habitsList[id], lastTenTimesDone, totalTimesDone, completedDays, timesDoneThisWeek})
+      setRowTimesDoneThisWeek(timesDoneThisWeek);
+      setRowTotalTimesDone(totalTimesDone)
+      // setRenderAgain(!renderAgain)
     };
 
     return (
@@ -162,10 +168,11 @@ export function HabitsListScreen({ navigation }) {
           activeOpacity={0.3}
           height={100}
           onPress={() => {
-            setTappedListItem(tappedListItem == id ? -1 : id);
+            // setTappedListItem(tappedListItem == id ? -1 : id);
+            setDropdownOpen(!dropdownOpen);
           }}
           containerStyle={{ borderRadius: BorderRadiuses.br60 }}
-        >
+          >
           <ListItem.Part left></ListItem.Part>
           <ListItem.Part
             middle
@@ -213,7 +220,7 @@ export function HabitsListScreen({ navigation }) {
                   }}
                   numberOfLines={1}
                 >
-                  {`${row.timesDoneThisWeek}/${countToggledDays} this week`}
+                  {`${rowTimesDoneThisWeek}/${countToggledDays} this week`}
                 </Text>
               </View>
             </ListItem.Part>
@@ -245,7 +252,7 @@ export function HabitsListScreen({ navigation }) {
             </ListItem.Part>
           </ListItem.Part>
         </ListItem>
-        {tappedListItem == id && (
+        {dropdownOpen && (
           <ListItem.Part
             backgroundColor={Colors.white}
             activeBackgroundColor={Colors.dark60}
@@ -277,18 +284,18 @@ export function HabitsListScreen({ navigation }) {
                 alignSelf: "center",
               }}
             >
-              Times completed to date: {row.allTimesDone.length}
+              Times completed to date: {rowTotalTimesDone}
             </Text>
             <Button
               backgroundColor="#30B650"
               label={
                 !row.completedDays[dateToWeekdayName(new Date())]
                   ? "MARK AS COMPLETED TODAY"
-                  : "UN-MARK AS COMPLETED TODAY"
+                  : "UN-MARK AS COMPLETED"
               }
               labelStyle={{ fontWeight: "600", fontSize: 14 }}
               style={{ marginBottom: 20 }}
-              onPress={handleMarkButtonPress}
+              onPress={() => handleMarkButtonPress(id)}
               enableShadow
               style={{ marginHorizontal: 20 }}
             />
@@ -324,7 +331,8 @@ export function HabitsListScreen({ navigation }) {
   }
 
   keyExtractor = (item, index) => item.index;
-  renderItem = ({ item, index }) => <FlatListRow row={item} id={index} />;
+  const MemoizedFlatListRow = useCallback(FlatListRow)
+  renderItem = ({ item, index }) => <MemoizedFlatListRow row={item} id={index} />;
 
   return (
     <View
@@ -361,9 +369,9 @@ export function HabitsListScreen({ navigation }) {
             },
             completedDays: getEmptyWeekDict(),
             timesDoneThisWeek: 0,
-            lastSevenTimesDone: [],
-            allTimesDone: Array.from({length: 10}, () => Date()),
-            timeOfDay: Date(),
+            lastTenTimesDone: [],
+            totalTimesDone: Math.floor(Math.random() * 100),
+            timeOfDay: parse('18:00', 'HH:mm', new Date()),
           });
           addHabitToList({
             title: "Yoga",
@@ -380,9 +388,9 @@ export function HabitsListScreen({ navigation }) {
             },
             completedDays: getEmptyWeekDict(),
             timesDoneThisWeek: 0,
-            lastSevenTimesDone: [],
-            allTimesDone: Array.from({length: 7}, () => Date()),
-            timeOfDay: Date(),
+            lastTenTimesDone: [],
+            totalTimesDone: Math.floor(Math.random() * 100),
+            timeOfDay: parse('20:00', 'HH:mm', new Date()),
           });
           addHabitToList({
             title: "Reading",
@@ -399,9 +407,9 @@ export function HabitsListScreen({ navigation }) {
             },
             completedDays: getEmptyWeekDict(),
             timesDoneThisWeek: 0,
-            lastSevenTimesDone: [],
-            allTimesDone: Array.from({length: 4}, () => Date()),
-            timeOfDay: Date(),
+            lastTenTimesDone: [],
+            totalTimesDone: Math.floor(Math.random() * 100),
+            timeOfDay: parse('22:00', 'HH:mm', new Date()),
           });
           addHabitToList({
             title: "Biking",
@@ -418,9 +426,9 @@ export function HabitsListScreen({ navigation }) {
             },
             completedDays: getEmptyWeekDict(),
             timesDoneThisWeek: 0,
-            lastSevenTimesDone: [],
-            allTimesDone: Array.from({length: 6}, () => Date()),
-            timeOfDay: Date(),
+            lastTenTimesDone: [],
+            totalTimesDone: Math.floor(Math.random() * 100),
+            timeOfDay: parse('08:00', 'HH:mm', new Date()),
           });
           addHabitToList({
             title: "Gratitude journal",
@@ -437,9 +445,9 @@ export function HabitsListScreen({ navigation }) {
             },
             completedDays: getEmptyWeekDict(),
             timesDoneThisWeek: 0,
-            lastSevenTimesDone: [],
-            allTimesDone: Array.from({length: 5}, () => Date()),
-            timeOfDay: Date(),
+            lastTenTimesDone: [],
+            totalTimesDone: Math.floor(Math.random() * 100),
+            timeOfDay: parse('09:00', 'HH:mm', new Date()),
           });
         }}
         enableShadow
