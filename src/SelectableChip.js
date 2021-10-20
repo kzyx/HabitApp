@@ -3,9 +3,7 @@ import React, { useState } from "react";
 
 export function SelectableChipItem(props) {
 
-    
-
-    var backgroundColor, borderColor, textColor, borderWidth;
+    let backgroundColor, borderColor, textColor;
     if (props.toggledDays[props.name] && props.completedDays[props.name]) {
         backgroundColor = Colors.green20;
         borderColor = Colors.green20;

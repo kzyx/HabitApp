@@ -42,14 +42,10 @@ export const habitSchemaTwo = yup.object().shape({
     .required("Time of day is required"),
 });
 
-const Page = ({ children, style, ...others }) => {
-  return (
-    <View {...others} style={[styles.page, style]}>
-      {children}
-    </View>
-  );
-};
-
+/**
+ * @param {navigation} navigation
+ * @returns Screen that prompts user to enter new habit title/description
+ */
 export function AddHabitOneScreen({ navigation }) {
 
   const [readyToExitScreen, setReadyToExitScreen] = useState(false);
@@ -201,17 +197,14 @@ export function AddHabitOneScreen({ navigation }) {
   );
 }
 
+/**
+ * @param {route} route Contains title/description in route.params
+ * @param {navigation} navigation
+ * @returns Screen that prompts user to enter new habit title/description
+ */
 export function AddHabitTwoScreen({ route, navigation }) {
   const {title, description} = route.params
-  const [toggledDays, setToggledDays] = useState({
-    Su: false,
-    M: false,
-    Tu: false,
-    W: false,
-    Th: false,
-    F: false,
-    Sa: false,
-  });
+  const [toggledDays, setToggledDays] = getEmptyWeekDict();
 
   const [timeOfDay, setTimeOfDay] = useState(null)
 
@@ -226,7 +219,7 @@ export function AddHabitTwoScreen({ route, navigation }) {
       setToggledDays(items);
     }
 
-    var temp = false;
+    let temp = false;
     for (key in items) {
       if (!items.hasOwnProperty(key)) {
         continue;
@@ -239,7 +232,7 @@ export function AddHabitTwoScreen({ route, navigation }) {
   }
 
   const [readyToExitScreen, setReadyToExitScreen] = useState(false);
-  var { habitsList, addHabitToList, removeHabitFromList } = useHabitsListContext();
+  let { habitsList, addHabitToList, removeHabitFromList } = useHabitsListContext();
 
   const animationPropsA = useSpring({
     to: { opacity: 1, marginTop: 0 },

@@ -1,4 +1,4 @@
-import { AddHabitOneScreen, AddHabitTwoScreen } from "./AddHabit";
+import { AddHabitOneScreen, AddHabitTwoScreen } from "./src/AddHabit";
 import {
   Button,
   Card,
@@ -15,14 +15,13 @@ import {
   Typography,
   View,
 } from "react-native-ui-lib";
-import { HabitsListContextProvider, HabitsListScreen } from "./HabitsList";
+import { HabitsListScreen } from "./src/HabitsList";
+import { HabitsListContextProvider } from "./src/HabitsListContext";
 import React, { createContext, useRef } from "react";
 import { Spring, animated } from "react-spring";
 import { StyleSheet, TextInput } from "react-native";
 
 import { NavigationContainer } from "@react-navigation/native";
-import { NewHabitContext } from "./AddHabit";
-import { StatusBar } from "expo-status-bar";
 import _ from "lodash";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
@@ -69,7 +68,7 @@ function HomeScreen({ navigation }) {
 }
 
 function GettingStartedScreen({ navigation }) {
-  var carousel = useRef(null);
+  let carousel = useRef(null);
 
   const onPagePress = (index) => {
     if (this.carousel && this.carousel.current) {
